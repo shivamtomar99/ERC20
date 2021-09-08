@@ -1,0 +1,61 @@
+
+// Sir,I have taken help from the internet to write some code ,
+// but the explanation is based on what I have understood , also some keywords are 
+// redundant so I have explained them only once in the comments.
+
+
+pragma solidity ^0.4.16;      //This is the first line of code in solidity and "0.4.16" tells about the version.
+
+contract owned{              //contract is an inbuilt keyword,similar to class in Python
+    address public owner;    //Again , address is a keyword , and used to store the value of any address,that can also be used during transactions
+                            // public keyword is used to specify that this address or function can also be accessed outside the definiton of this contract         
+    function owned() public {     //function keyword to define a function
+        owner = msg.sender;             //owner has been assigned as message sender,we can understand it as the transaction initiator   
+    }
+    modifier onlyOwner{             //modifier modifies the behaviour of the function              
+        require(msg.sender == owner);  //require used to check the fulfillment of the condition given in parameter
+        _;                            //this is an important statement used by the modifiers,it have different uses but we can understand it as a function call where the modifier needs to work upon (just for example) 
+    }
+    function transferOwnership(address newOwner) onlyOwner public{
+        owner = newOwner;
+    }
+}
+interface tokenRecipient {
+    function receiveApproval(address _from,uint256 _value , address _token,bytes _extraData) external;
+}
+
+contract tokenERC20{                 //from here , I have declared variables of the contract
+    string public name;
+    string public symbol;              // for string and also public
+    uint8 public decimals = 18;        // uint8 means unsigned int of 8 bytes
+    uint256 public totalSupply;
+    
+    mapping(address => uint256) public balanceOf;               //mapping is done, it can be understood as dictionary in Python (key-value pair)
+    mapping(address => mapping(address => uint256)) public allowance;  //it also signifies that we are storing address in the form of integer of 256 bytes,which is the value of the token.
+    
+    event Transfer(address indexed from,address indexed to,uint256 value);
+    event Approval(address indexed _owner, address indexed _spender,uint256 _value);  //event can be understood same as events in javascript,which tells the calling application about calling state of contract
+                                                                                                //and it will create an event on blockchain notifying members when event occurs
+    event Burn(address indexed from,uint256 value);
+    
+    function TokenERC20(                    //function to initialize token inside the contract with initial supply of tokens        
+        uint256 initialSupply,
+        string tokenName,                   //owner can have its own name and symbol
+        string tokenSymbol
+        ) public {
+            totalSupply = initialSupply * 10**uint256(decimals);    //to update total supply with decimals
+            balanceOf[msg.sender]= totalSupply;
+            name = tokenName;
+            symbol = tokenSymbol;
+            
+        }
+        function _transfer(address _from,address _to,uint _value) internal {    //this is done for internal transfer only 
+            require(_to != 0*0);                                    //for basic conditions fulfillment                   
+            require(balanceOf[_from] >= value);                     //--same--
+            require(balanceOf[_to] + _value >balanceOf[_to]);
+            uint previousBalances = balanceOf[_from] -= _value;      //basic banking transaction concept
+            balanceOf[_to] += _value;
+            emit Transfer(_from,_to,_value);              //this will emit the event declared before
+            assert(balanceOf[_from]+balanceOf[_to] == previousBalances);    //assert is similar to require but the conditions in assert Must not fail
+        }
+}
